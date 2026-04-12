@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+
+import rospy
+from std_msgs.msg import String
+from exam_proctoring.srv import CheckViolation, CheckViolationResponse
+
+# Publisher
+violation_pub = None
+
+def evaluate_behavior(behavior):
+    """Apply rules to a behavior string and return violation info."""
+    if behavior == "looking_away":
+        return True, "looking_away", 1
+    elif behavior == "phone_detected":
+        return True, "prohibited_object", 3
+    elif behavior == "book_detected":
+        return True, "prohibited_object", 2
+    elif behavior == "unusual_distance":
+        return True, "unusual_distance", 1
+    else:
+        return False, "none", 0
+
+def behavior_callback(msg):
+    behavior = msg.data
+    rospy.loginfo(f"[Rule Node] Received behavior: {behavior}")
+
+    detected, v_type, severity = evaluate_behavior(behavior)
+
+    if detected:
+        out = String()
+        out.data = f"VIOLATION:{v_type}:severity_{severity}"
+        violation_pub.publish(out)
+        rospy.loginfo(f"[Rule Node] Violation published: {out.data}")
+    else:
+        out = String()
+        out.data = "no_violation"
+        violation_pub.publish(out)
+        rospy.loginfo("[Rule Node] No violation.")
+
+def handle_check_violation(req):
+    detected, v_type, severity = evaluate_behavior(req.behavior)
+    return CheckViolationResponse(
+        violation_detected=detected,
+        violation_type=v_type,
+        severity=severity
+    )
+
+def main():
+    global violation_pub
+
+    rospy.init_node('rule_node', anonymous=False)
+
+    violation_pub = rospy.Publisher('/violation_event', String, queue_size=10)
+
+    rospy.Subscriber('/behavior_state', String, behavior_callback)
+
+    rospy.Service('/check_violation', CheckViolation, handle_check_violation)
+
+    rospy.loginfo("[Rule Node] Ready and running.")
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()
