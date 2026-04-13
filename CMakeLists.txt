@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -52,12 +53,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
-
+add_message_files(
+  FILES
+  ObjectData.msg
+)
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
@@ -111,6 +110,7 @@ catkin_package(
 #  LIBRARIES exam_proctoring
 #  CATKIN_DEPENDS actionlib actionlib_msgs cv_bridge geometry_msgs image_transport rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
+  CATKIN_DEPENDS message_runtime std_msgs
 )
 
 ###########

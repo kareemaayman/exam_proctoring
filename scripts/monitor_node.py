@@ -2,6 +2,7 @@
 
 import rospy
 from std_msgs.msg import String
+from exam_proctoring.msg import ObjectData
 
 # Store latest value from each topic
 status = {
@@ -21,7 +22,18 @@ def face_cb(msg):
     status["face"] = msg.data
 
 def object_cb(msg):
-    status["object"] = msg.data
+    flags = []
+    
+    if msg.phone_detected:
+        flags.append("📱 Phone")
+    if msg.book_detected:
+        flags.append("📚 Book")
+
+    if msg.object_detected:
+        labels = ", ".join(msg.object_labels)
+        status["object"] = f"{labels} | {' '.join(flags)}"
+    else:
+        status["object"] = "No objects detected"
 
 def depth_cb(msg):
     status["depth"] = msg.data
@@ -53,7 +65,7 @@ def main():
 
     rospy.Subscriber('/camera_frames',   String, camera_cb)
     rospy.Subscriber('/face_data',       String, face_cb)
-    rospy.Subscriber('/object_data',     String, object_cb)
+    rospy.Subscriber('/object_data', ObjectData, object_cb)
     rospy.Subscriber('/depth_data',      String, depth_cb)
     rospy.Subscriber('/behavior_state',  String, behavior_cb)
     rospy.Subscriber('/violation_event', String, violation_cb)
