@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from exam_proctoring.msg import ObjectData
 
@@ -16,7 +17,7 @@ status = {
 }
 
 def camera_cb(msg):
-    status["camera"] = msg.data
+    status["camera"] = f"image {msg.width}x{msg.height}"
 
 def face_cb(msg):
     status["face"] = msg.data
@@ -63,7 +64,7 @@ def print_status(event):
 def main():
     rospy.init_node('monitor_node', anonymous=False)
 
-    rospy.Subscriber('/camera_frames',   String, camera_cb)
+    rospy.Subscriber('/camera_frames',   Image, camera_cb)
     rospy.Subscriber('/face_data',       String, face_cb)
     rospy.Subscriber('/object_data', ObjectData, object_cb)
     rospy.Subscriber('/depth_data',      String, depth_cb)
