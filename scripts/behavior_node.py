@@ -2,6 +2,7 @@
 
 import rospy
 from std_msgs.msg import String
+from exam_proctoring.msg import ObjectData
 
 class BehaviorNode:
 
@@ -17,7 +18,7 @@ class BehaviorNode:
         # SUBSCRIBERS
         # ==============================
         rospy.Subscriber('/face_data', String, self.face_callback)
-        rospy.Subscriber('/object_data', String, self.object_callback)
+        rospy.Subscriber('/object_data', ObjectData, self.object_callback)
         rospy.Subscriber('/depth_data', String, self.depth_callback)
 
         # ==============================
@@ -41,8 +42,14 @@ class BehaviorNode:
         self.face = msg.data
 
     def object_callback(self, msg):
-        self.object = msg.data
-
+        if msg.phone_detected:
+            self.object = "cell phone"
+        elif msg.book_detected:
+            self.object = "book"
+        else:
+            self.object = "none"
+        rospy.loginfo(f"[Object Received] {self.object}")
+         
     def depth_callback(self, msg):
         self.depth = msg.data
 
@@ -59,27 +66,29 @@ class BehaviorNode:
 
         looking_away = self.no_face_counter >= self.attention_threshold
 
-        # -------- OBJECT ANALYSIS --------
-        using_object = self.object in ["phone", "book"]
-
-        # -------- DEPTH ANALYSIS --------
-        bad_distance = self.depth in ["far", "close"]
-
         # ==============================
         # DECISION LOGIC (PRIORITY)
         # ==============================
 
-        # Highest priority → cheating
-        if using_object:
+        # Highest priority → cheating (object-based)
+        if self.object == "cell phone":
             return "using_phone"
+
+        if self.object == "book":
+            return "using_book"
 
         # Medium → attention issue
         if looking_away:
             return "looking_away"
 
-        # Low → suspicious positioning
-        if bad_distance:
+        if self.depth == "far":
             return "too_far"
+
+        if self.depth == "close":
+            return "too_close"
+
+        if self.depth == "normal":
+            return "normal"
 
         # Normal
         return "normal"

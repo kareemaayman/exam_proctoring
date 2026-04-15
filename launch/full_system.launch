@@ -14,6 +14,11 @@
 
     <!-- DEPTH -->
     <node pkg="exam_proctoring" type="depth_node.py" name="depth_node" output="screen"/>
+    
+    <node pkg="exam_proctoring"
+      type="combined_viewer_node.py"
+      name="combined_viewer_node"
+      output="screen"/>
 
     <!-- BEHAVIOR -->
     <node pkg="exam_proctoring" type="behavior_node.py" name="behavior_node" output="screen"/>
